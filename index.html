@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Verification - Chashma Bazar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 430px;
+      background: #FFFFFF;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+      border: 1px solid #CBD5E1;
+    }
+    .top {
+      background: #0F172A;
+      color: #FFFFFF;
+      padding: 22px 18px;
+      text-align: center;
+      border-bottom: 4px solid #0F766E;
+    }
+    .verified-badge {
+      display: inline-block;
+      background: #0F766E;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .invalid-badge {
+      background: #DC2626;
+    }
+    .brand { font-size: 22px; font-weight: 900; letter-spacing: 1.2px; }
+    .slogan { font-size: 11px; color: #FCD34D; font-style: italic; margin-top: 3px; }
+    .body { padding: 18px 20px; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid #E2E8F0;
+      font-size: 13.5px;
+    }
+    .row:last-child { border-bottom: none; }
+    .lbl { color: #475569; font-weight: 600; }
+    .val { color: #0F172A; font-weight: 700; text-align: right; max-width: 60%; }
+    .status-pill {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11.5px;
+      font-weight: 800;
+    }
+    .paid-pill { background: #CCFBF1; color: #115E59; }
+    .pending-pill { background: #FEF3C7; color: #92400E; }
+    .center-msg { text-align: center; padding: 36px 20px; color: #475569; font-size: 14px; }
+    .spinner {
+      width: 34px; height: 34px;
+      border: 3.5px solid #CBD5E1;
+      border-top-color: #0F766E;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .foot {
+      text-align: center;
+      font-size: 11px;
+      color: #64748B;
+      padding: 13px 16px;
+      background: #F8FAFC;
+      border-top: 1px solid #E2E8F0;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="top">
+      <div id="badge" class="verified-badge">CHECKING INVOICE...</div>
+      <div class="brand">CHASHMA BAZAR</div>
+      <div class="slogan">Trusted Companion of Your Eyes</div>
+    </div>
+
+    <div id="content" class="center-msg">
+      <div class="spinner"></div>
+      <div>Verifying invoice authenticity...</div>
+    </div>
+
+    <div class="foot">
+      Sawkat Bhabon, 94 New Elephant Road, Dhaka<br>
+      Tel: 01644-138132
+    </div>
+  </div>
+
+  <script>
+    // আপনার Orders & Invoices Web App URL এখানে বসান:
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGOTnA9J-ycXHUYkzxXpmy2QQeoBndPb6rkEEjsnGaqBT1fChPk2CpdmtSvWVhLTqo/exec";
+
+    const params = new URLSearchParams(window.location.search);
+    const inv = params.get("inv");
+    const badgeEl = document.getElementById("badge");
+    const contentEl = document.getElementById("content");
+
+    if (!inv) {
+      badgeEl.textContent = "VERIFICATION PORTAL";
+      contentEl.innerHTML = "<strong>Please scan a valid Chashma Bazar QR code</strong><br>to view live invoice details.";
+    } else {
+      fetch(`${SCRIPT_URL}?inv=${encodeURIComponent(inv)}&mode=json`)
+        .then(res => res.json())
+        .then(res => {
+          if (!res.success || !res.data) {
+            badgeEl.textContent = "✖ INVALID INVOICE";
+            badgeEl.classList.add("invalid-badge");
+            contentEl.innerHTML = `Invoice <strong>${inv}</strong> was not found in Chashma Bazar official records.`;
+            return;
+          }
+
+          const d = res.data;
+          badgeEl.textContent = "✔ VERIFIED INVOICE";
+          const pillClass = d.isPaid ? "paid-pill" : "pending-pill";
+          const dueColor = d.isPaid ? "#0F766E" : "#B45309";
+          const dueText = d.isPaid ? "FULL PAID (Tk. 0)" : `Tk. ${d.due}`;
+
+          contentEl.className = "body";
+          contentEl.innerHTML = `
+            <div class="row"><span class="lbl">Invoice No</span><span class="val">${d.invoiceNo}</span></div>
+            <div class="row"><span class="lbl">Order Date & Time</span><span class="val">${d.orderDateTime}</span></div>
+            <div class="row"><span class="lbl">Delivery Time</span><span class="val">${d.deliveryTime}</span></div>
+            <div class="row"><span class="lbl">Customer</span><span class="val">${d.customerName}</span></div>
+            <div class="row"><span class="lbl">Phone</span><span class="val">${d.customerPhone}</span></div>
+            <div class="row"><span class="lbl">Frame / Glass</span><span class="val">${d.frame} / ${d.glass}</span></div>
+            <div class="row"><span class="lbl">Order Status</span><span class="val"><span class="status-pill ${pillClass}">${d.status}</span></span></div>
+            <div class="row"><span class="lbl">Total Bill</span><span class="val">Tk. ${d.total}</span></div>
+            <div class="row"><span class="lbl">Paid Amount</span><span class="val" style="color:#0F766E;">Tk. ${d.paid}</span></div>
+            <div class="row"><span class="lbl">Balance Due</span><span class="val" style="color:${dueColor};">${dueText}</span></div>
+          `;
+        })
+        .catch(() => {
+          badgeEl.textContent = "⚠ CONNECTION ERROR";
+          badgeEl.classList.add("invalid-badge");
+          contentEl.innerHTML = "Unable to connect to verification server. Please try again.";
+        });
+    }
+  </script>
+</body>
+</html>
