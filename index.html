@@ -3,158 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invoice Verification - Chashma Bazar</title>
+  <title>Chashma Bazar — Invoice Verification</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #F1F5F9;
+      background-color: #EEF2F6;
       color: #0F172A;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: 18px;
     }
     .card {
       width: 100%;
-      max-width: 430px;
+      max-width: 420px;
       background: #FFFFFF;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+      box-shadow: 0 12px 32px rgba(15, 31, 61, 0.12);
       border: 1px solid #CBD5E1;
     }
-    .top {
-      background: #0F172A;
+    .header {
+      background: #0F1F3D;
       color: #FFFFFF;
-      padding: 22px 18px;
       text-align: center;
-      border-bottom: 4px solid #0F766E;
+      padding: 24px 18px 20px;
+      border-bottom: 3px solid #1F7A55;
     }
     .verified-badge {
       display: inline-block;
-      background: #0F766E;
+      background: #1F7A55;
       color: #FFFFFF;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 700;
       letter-spacing: 0.8px;
       padding: 5px 14px;
       border-radius: 20px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
-    .invalid-badge {
-      background: #DC2626;
+    .brand {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
     }
-    .brand { font-size: 22px; font-weight: 900; letter-spacing: 1.2px; }
-    .slogan { font-size: 11px; color: #FCD34D; font-style: italic; margin-top: 3px; }
-    .body { padding: 18px 20px; }
+    .tagline {
+      font-size: 12px;
+      font-style: italic;
+      color: #E2C08D;
+      margin-top: 4px;
+    }
+    .body {
+      padding: 18px 22px;
+    }
     .row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 9px 0;
+      padding: 10px 0;
       border-bottom: 1px solid #E2E8F0;
       font-size: 13.5px;
+      gap: 12px;
     }
     .row:last-child { border-bottom: none; }
-    .lbl { color: #475569; font-weight: 600; }
-    .val { color: #0F172A; font-weight: 700; text-align: right; max-width: 60%; }
-    .status-pill {
-      padding: 3px 10px;
+    .label { color: #334155; font-weight: 500; }
+    .value { color: #0F172A; font-weight: 700; text-align: right; }
+    .status-badge {
+      display: inline-block;
+      padding: 3px 11px;
       border-radius: 12px;
       font-size: 11.5px;
       font-weight: 800;
+      letter-spacing: 0.5px;
     }
-    .paid-pill { background: #CCFBF1; color: #115E59; }
-    .pending-pill { background: #FEF3C7; color: #92400E; }
-    .center-msg { text-align: center; padding: 36px 20px; color: #475569; font-size: 14px; }
-    .spinner {
-      width: 34px; height: 34px;
-      border: 3.5px solid #CBD5E1;
-      border-top-color: #0F766E;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 12px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .foot {
-      text-align: center;
-      font-size: 11px;
-      color: #64748B;
-      padding: 13px 16px;
+    .st-delivered { background: #D1E7DD; color: #0F5132; border: 1px solid #0F5132; }
+    .st-ready     { background: #E0F2FE; color: #0C4A6E; border: 1px solid #0C4A6E; }
+    .st-processing{ background: #FEF3C7; color: #78350F; border: 1px solid #78350F; }
+    .paid-text { color: #0F5132; font-weight: 800; }
+    .due-text  { color: #991B1B; font-weight: 800; }
+    .footer {
       background: #F8FAFC;
       border-top: 1px solid #E2E8F0;
+      text-align: center;
+      padding: 14px 18px;
+      font-size: 12px;
+      color: #1E293B;
       line-height: 1.5;
     }
+    .dev-credit {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #CBD5E1;
+      font-size: 10.5px;
+      color: #475569;
+      letter-spacing: 0.3px;
+    }
+    .loading, .error {
+      text-align: center;
+      padding: 36px 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .error { color: #B91C1C; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="top">
-      <div id="badge" class="verified-badge">CHECKING INVOICE...</div>
+    <div class="header">
+      <div class="verified-badge" id="topBadge">✓ VERIFIED INVOICE</div>
       <div class="brand">CHASHMA BAZAR</div>
-      <div class="slogan">Trusted Companion of Your Eyes</div>
+      <div class="tagline">Trusted Companion of Your Eyes</div>
     </div>
 
-    <div id="content" class="center-msg">
-      <div class="spinner"></div>
-      <div>Verifying invoice authenticity...</div>
+    <div class="body" id="content">
+      <div class="loading">Verifying invoice authenticity...</div>
     </div>
 
-    <div class="foot">
-      Sawkat Bhabon, 94 New Elephant Road, Dhaka<br>
-      Tel: 01644-138132
+    <div class="footer">
+      <div><strong>Sawkat Bhabon, 94 New Elephant Road, Dhaka</strong></div>
+      <div>Tel: 01644-138132</div>
+      <div class="dev-credit">System Engineered by Md. Tanbir Hasan</div>
     </div>
   </div>
 
   <script>
-    // আপনার Orders & Invoices Web App URL এখানে বসান:
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGOTnA9J-ycXHUYkzxXpmy2QQeoBndPb6rkEEjsnGaqBT1fChPk2CpdmtSvWVhLTqo/exec";
+    // এখানে আপনার বর্তমান Orders Web App URL-টি বসান
+    const API_URL = "YOUR_ORDERS_WEB_APP_URL";
 
     const params = new URLSearchParams(window.location.search);
     const inv = params.get("inv");
-    const badgeEl = document.getElementById("badge");
     const contentEl = document.getElementById("content");
+    const badgeEl = document.getElementById("topBadge");
 
     if (!inv) {
-      badgeEl.textContent = "VERIFICATION PORTAL";
-      contentEl.innerHTML = "<strong>Please scan a valid Chashma Bazar QR code</strong><br>to view live invoice details.";
+      badgeEl.textContent = "INVOICE PORTAL";
+      contentEl.innerHTML = '<div class="error">No invoice number provided. Please scan a valid QR code.</div>';
     } else {
-      fetch(`${SCRIPT_URL}?inv=${encodeURIComponent(inv)}&mode=json`)
-        .then(res => res.json())
+      fetch(`${API_URL}?inv=${encodeURIComponent(inv)}&mode=json`)
+        .then(r => r.json())
         .then(res => {
           if (!res.success || !res.data) {
-            badgeEl.textContent = "✖ INVALID INVOICE";
-            badgeEl.classList.add("invalid-badge");
-            contentEl.innerHTML = `Invoice <strong>${inv}</strong> was not found in Chashma Bazar official records.`;
+            badgeEl.textContent = "✕ INVALID INVOICE";
+            badgeEl.style.background = "#B91C1C";
+            contentEl.innerHTML = `<div class="error">${res.message || "Invoice not found in Chashma Bazar records."}</div>`;
             return;
           }
-
           const d = res.data;
-          badgeEl.textContent = "✔ VERIFIED INVOICE";
-          const pillClass = d.isPaid ? "paid-pill" : "pending-pill";
-          const dueColor = d.isPaid ? "#0F766E" : "#B45309";
-          const dueText = d.isPaid ? "FULL PAID (Tk. 0)" : `Tk. ${d.due}`;
+          const st = (d.status || "PROCESSING").toUpperCase();
+          const stClass = st === "DELIVERED" ? "st-delivered" : (st === "READY" ? "st-ready" : "st-processing");
+          const dueHtml = d.isPaid
+            ? `<span class="paid-text">FULL PAID (Tk. 0)</span>`
+            : `<span class="due-text">Tk. ${d.due}</span>`;
 
-          contentEl.className = "body";
           contentEl.innerHTML = `
-            <div class="row"><span class="lbl">Invoice No</span><span class="val">${d.invoiceNo}</span></div>
-            <div class="row"><span class="lbl">Order Date & Time</span><span class="val">${d.orderDateTime}</span></div>
-            <div class="row"><span class="lbl">Delivery Time</span><span class="val">${d.deliveryTime}</span></div>
-            <div class="row"><span class="lbl">Customer</span><span class="val">${d.customerName}</span></div>
-            <div class="row"><span class="lbl">Phone</span><span class="val">${d.customerPhone}</span></div>
-            <div class="row"><span class="lbl">Frame / Glass</span><span class="val">${d.frame} / ${d.glass}</span></div>
-            <div class="row"><span class="lbl">Order Status</span><span class="val"><span class="status-pill ${pillClass}">${d.status}</span></span></div>
-            <div class="row"><span class="lbl">Total Bill</span><span class="val">Tk. ${d.total}</span></div>
-            <div class="row"><span class="lbl">Paid Amount</span><span class="val" style="color:#0F766E;">Tk. ${d.paid}</span></div>
-            <div class="row"><span class="lbl">Balance Due</span><span class="val" style="color:${dueColor};">${dueText}</span></div>
+            <div class="row"><span class="label">Invoice No</span><span class="value">${d.invoiceNo}</span></div>
+            <div class="row"><span class="label">Order Date & Time</span><span class="value">${d.orderDateTime}</span></div>
+            <div class="row"><span class="label">Delivery Time</span><span class="value">${d.deliveryTime}</span></div>
+            <div class="row"><span class="label">Customer</span><span class="value">${d.customerName}</span></div>
+            <div class="row"><span class="label">Phone</span><span class="value">${d.customerPhone}</span></div>
+            <div class="row"><span class="label">Frame / Glass</span><span class="value">${d.frame} / ${d.glass}</span></div>
+            <div class="row"><span class="label">Order Status</span><span class="value"><span class="status-badge ${stClass}">${st}</span></span></div>
+            <div class="row"><span class="label">Total Bill</span><span class="value">Tk. ${d.total}</span></div>
+            <div class="row"><span class="label">Paid Amount</span><span class="value paid-text">Tk. ${d.paid}</span></div>
+            <div class="row"><span class="label">Balance Due</span><span class="value">${dueHtml}</span></div>
           `;
         })
         .catch(() => {
-          badgeEl.textContent = "⚠ CONNECTION ERROR";
-          badgeEl.classList.add("invalid-badge");
-          contentEl.innerHTML = "Unable to connect to verification server. Please try again.";
+          contentEl.innerHTML = '<div class="error">Unable to connect to verification server. Please try again.</div>';
         });
     }
   </script>
