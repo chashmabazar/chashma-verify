@@ -1,178 +1,767 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chashma Bazar — Invoice Verification</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chashma Bazar — Official Invoice Verification</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0F1F3D;
+      --navy-light: #1E3A6E;
+      --text: #0F172A;
+      --muted: #64748B;
+      --border: #E2E8F0;
+      --bg: #F8FAFC;
+      --white: #FFFFFF;
+      --green-bg: #D1E7DD;
+      --green-text: #0F5132;
+      --blue-bg: #E0F2FE;
+      --blue-text: #0C4A6E;
+      --amber-bg: #FEF3C7;
+      --amber-text: #78350F;
+      --red-bg: #FEE2E2;
+      --red-text: #991B1B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #EEF2F6;
-      color: #0F172A;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
     }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
     .card {
-      width: 100%;
-      max-width: 420px;
-      background: #FFFFFF;
-      border-radius: 16px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(15, 31, 61, 0.06);
       overflow: hidden;
-      box-shadow: 0 12px 32px rgba(15, 31, 61, 0.12);
-      border: 1px solid #CBD5E1;
     }
-    .header {
-      background: #0F1F3D;
-      color: #FFFFFF;
-      text-align: center;
-      padding: 24px 18px 20px;
-      border-bottom: 3px solid #1F7A55;
-    }
-    .verified-badge {
-      display: inline-block;
-      background: #1F7A55;
-      color: #FFFFFF;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      padding: 5px 14px;
-      border-radius: 20px;
-      margin-bottom: 12px;
-    }
-    .brand {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 1px;
-    }
-    .tagline {
-      font-size: 12px;
-      font-style: italic;
-      color: #E2C08D;
-      margin-top: 4px;
-    }
-    .body {
-      padding: 18px 22px;
-    }
-    .row {
+
+    /* Top Brand Bar */
+    .brand-header {
+      background: var(--navy);
+      color: var(--white);
+      padding: 20px 22px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #E2E8F0;
-      font-size: 13.5px;
       gap: 12px;
+      flex-wrap: wrap;
     }
-    .row:last-child { border-bottom: none; }
-    .label { color: #334155; font-weight: 500; }
-    .value { color: #0F172A; font-weight: 700; text-align: right; }
-    .status-badge {
-      display: inline-block;
-      padding: 3px 11px;
-      border-radius: 12px;
-      font-size: 11.5px;
+
+    .brand-title {
+      font-size: 20px;
       font-weight: 800;
       letter-spacing: 0.5px;
     }
-    .st-delivered { background: #D1E7DD; color: #0F5132; border: 1px solid #0F5132; }
-    .st-ready     { background: #E0F2FE; color: #0C4A6E; border: 1px solid #0C4A6E; }
-    .st-processing{ background: #FEF3C7; color: #78350F; border: 1px solid #78350F; }
-    .paid-text { color: #0F5132; font-weight: 800; }
-    .due-text  { color: #991B1B; font-weight: 800; }
-    .footer {
-      background: #F8FAFC;
-      border-top: 1px solid #E2E8F0;
-      text-align: center;
-      padding: 14px 18px;
+
+    .brand-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .verified-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #FFFFFF;
+      padding: 5px 11px;
+      border-radius: 999px;
       font-size: 12px;
-      color: #1E293B;
-      line-height: 1.5;
-    }
-    .dev-credit {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px dashed #CBD5E1;
-      font-size: 10.5px;
-      color: #475569;
-      letter-spacing: 0.3px;
-    }
-    .loading, .error {
-      text-align: center;
-      padding: 36px 20px;
-      font-size: 14px;
       font-weight: 600;
     }
-    .error { color: #B91C1C; }
+
+    .content {
+      padding: 20px 22px;
+    }
+
+    /* States (Loading, Error, Empty) */
+    .state-box {
+      text-align: center;
+      padding: 44px 20px;
+    }
+
+    .spinner {
+      width: 38px;
+      height: 38px;
+      border: 3.5px solid var(--border);
+      border-top-color: var(--navy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 14px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .state-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .state-icon.error {
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    .state-icon.info {
+      background: var(--blue-bg);
+      color: var(--blue-text);
+    }
+
+    .state-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .state-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* Invoice Top Summary */
+    .inv-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .inv-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+    }
+
+    .inv-no {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.2;
+    }
+
+    .inv-date {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .status-DELIVERED { background: var(--green-bg); color: var(--green-text); }
+    .status-READY { background: var(--blue-bg); color: var(--blue-text); }
+    .status-PROCESSING { background: var(--amber-bg); color: var(--amber-text); }
+
+    /* Info Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 560px) {
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+      .content {
+        padding: 16px;
+      }
+    }
+
+    .info-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: var(--white);
+    }
+
+    .info-card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--navy);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-key {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .info-val {
+      color: var(--text);
+      font-weight: 600;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .delivered-text {
+      color: var(--green-text);
+      font-weight: 700;
+    }
+
+    /* Tables */
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--navy);
+      margin: 18px 0 8px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      background: #F8FAFC;
+      color: var(--navy);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+
+    .item-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .item-breakdown {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Totals */
+    .summary-box {
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      background: var(--white);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13.5px;
+      margin-bottom: 6px;
+    }
+
+    .summary-row.grand {
+      border-top: 1.5px solid var(--navy);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+      margin: 8px 0;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .due-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .due-banner.paid {
+      background: var(--green-bg);
+      color: var(--green-text);
+    }
+
+    .due-banner.unpaid {
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    .words-line {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .words-line strong {
+      color: var(--text);
+    }
+
+    /* Actions & Footer */
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-width: 180px;
+      background: var(--navy);
+      color: var(--white);
+      text-decoration: none;
+      padding: 11px 16px;
+      border-radius: 9px;
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: background 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--navy-light);
+    }
+
+    .portal-footer {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 16px;
+      padding-bottom: 12px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <div class="verified-badge" id="topBadge">✓ VERIFIED INVOICE</div>
-      <div class="brand">CHASHMA BAZAR</div>
-      <div class="tagline">Trusted Companion of Your Eyes</div>
+  <div class="container">
+    <div class="card">
+      <div class="brand-header">
+        <div>
+          <div class="brand-title">CHASHMA BAZAR</div>
+          <div class="brand-sub">Official Invoice Verification Portal</div>
+        </div>
+        <div id="verifiedBadge" class="verified-chip hidden">
+          &#10003; Authentic Record
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="state-box">
+        <div class="spinner"></div>
+        <div class="state-title">Verifying Invoice...</div>
+        <div class="state-desc">Checking HMAC security token and live order status with Chashma Bazar records.</div>
+      </div>
+
+      <!-- Error / Unauthorized State -->
+      <div id="errorState" class="state-box hidden">
+        <div class="state-icon error">!</div>
+        <div id="errorTitle" class="state-title">Verification Failed</div>
+        <div id="errorDesc" class="state-desc">This invoice could not be verified.</div>
+      </div>
+
+      <!-- Empty / Direct Visit State -->
+      <div id="emptyState" class="state-box hidden">
+        <div class="state-icon info">i</div>
+        <div class="state-title">Scan Your Invoice QR Code</div>
+        <div class="state-desc">
+          To verify an order, scan the secure QR code printed on your official Chashma Bazar invoice.
+        </div>
+      </div>
+
+      <!-- Verified Invoice Content -->
+      <div id="invoiceContent" class="content hidden">
+        <div class="inv-banner">
+          <div>
+            <div class="inv-label">Official Invoice</div>
+            <div id="invNo" class="inv-no">-</div>
+            <div id="invDate" class="inv-date">Issued: -</div>
+          </div>
+          <div id="statusPill" class="status-pill status-PROCESSING">PROCESSING</div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-card-title">Customer Information</div>
+            <div class="info-row">
+              <span class="info-key">Name</span>
+              <span id="custName" class="info-val">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Phone</span>
+              <span id="custPhone" class="info-val">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Address</span>
+              <span id="custAddress" class="info-val">-</span>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-title">Order &amp; Delivery Audit</div>
+            <div class="info-row">
+              <span class="info-key">Payment Mode</span>
+              <span id="payMethod" class="info-val">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Prepared By</span>
+              <span id="createdBy" class="info-val">-</span>
+            </div>
+            <div id="expectedDeliveryRow" class="info-row">
+              <span class="info-key">Est. Delivery</span>
+              <span id="deliveryTime" class="info-val">-</span>
+            </div>
+            <div id="deliveredOnRow" class="info-row hidden">
+              <span class="info-key">Delivered On</span>
+              <span id="deliveredAt" class="info-val delivered-text">-</span>
+            </div>
+            <div id="deliveredByRow" class="info-row hidden">
+              <span class="info-key">Delivered By</span>
+              <span id="deliveredBy" class="info-val delivered-text">-</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Order Items</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 48%;">Item</th>
+                <th class="text-center" style="width: 12%;">Qty</th>
+                <th class="text-right" style="width: 20%;">Rate</th>
+                <th class="text-right" style="width: 20%;">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+        </div>
+
+        <div id="rxSection" class="hidden">
+          <div id="rxHeading" class="section-title">Optical Prescription (Rx)</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Eye</th>
+                  <th class="text-center">SPH</th>
+                  <th class="text-center">CYL</th>
+                  <th class="text-center">AXIS</th>
+                  <th class="text-center">ADD</th>
+                </tr>
+              </thead>
+              <tbody id="rxBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="summary-row">
+            <span>Sub Total</span>
+            <strong id="subTotal">Tk. 0</strong>
+          </div>
+          <div id="discountRow" class="summary-row hidden">
+            <span>Discount</span>
+            <strong id="discount">- Tk. 0</strong>
+          </div>
+          <div class="summary-row grand">
+            <span>Net Payable</span>
+            <span id="netTotal">Tk. 0</span>
+          </div>
+          <div class="summary-row">
+            <span>Paid / Advance</span>
+            <strong id="paidAmount">Tk. 0</strong>
+          </div>
+          <div id="dueBanner" class="due-banner unpaid">
+            <span id="dueLabel">BALANCE DUE</span>
+            <span id="dueValue">Tk. 0</span>
+          </div>
+          <div class="words-line">
+            Amount in Words: <strong id="amountWords">-</strong>
+          </div>
+        </div>
+
+        <div id="pdfActionWrap" class="actions hidden">
+          <a id="pdfLink" class="btn-primary" href="#" target="_blank" rel="noopener noreferrer">
+            View / Download Official A5 PDF
+          </a>
+        </div>
+      </div>
     </div>
 
-    <div class="body" id="content">
-      <div class="loading">Verifying invoice authenticity...</div>
-    </div>
-
-    <div class="footer">
-      <div><strong>Sawkat Bhabon, 94 New Elephant Road, Dhaka</strong></div>
-      <div>Tel: 01644-138132</div>
-      <div class="dev-credit">System Engineered by Md. Tanbir Hasan</div>
+    <div id="portalFooter" class="portal-footer">
+      Chashma Bazar Enterprise Optical ERP &bull; HMAC-SHA256 Secured Verification
     </div>
   </div>
 
   <script>
-    // এখানে আপনার বর্তমান Orders Web App URL-টি বসান
-    const API_URL = "https://script.google.com/macros/s/AKfycbwGOTnA9J-ycXHUYkzxXpmy2QQeoBndPb6rkEEjsnGaqBT1fChPk2CpdmtSvWVhLTqo/exec";
+    // Replace with your deployed Google Apps Script Web App URL (ending in /exec)
+    const GAS_WEB_APP_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
 
-    const params = new URLSearchParams(window.location.search);
-    const inv = params.get("inv");
-    const contentEl = document.getElementById("content");
-    const badgeEl = document.getElementById("topBadge");
-
-    if (!inv) {
-      badgeEl.textContent = "INVOICE PORTAL";
-      contentEl.innerHTML = '<div class="error">No invoice number provided. Please scan a valid QR code.</div>';
-    } else {
-      fetch(`${API_URL}?inv=${encodeURIComponent(inv)}&mode=json`)
-        .then(r => r.json())
-        .then(res => {
-          if (!res.success || !res.data) {
-            badgeEl.textContent = "✕ INVALID INVOICE";
-            badgeEl.style.background = "#B91C1C";
-            contentEl.innerHTML = `<div class="error">${res.message || "Invoice not found in Chashma Bazar records."}</div>`;
-            return;
-          }
-          const d = res.data;
-          const st = (d.status || "PROCESSING").toUpperCase();
-          const stClass = st === "DELIVERED" ? "st-delivered" : (st === "READY" ? "st-ready" : "st-processing");
-          const dueHtml = d.isPaid
-            ? `<span class="paid-text">FULL PAID (Tk. 0)</span>`
-            : `<span class="due-text">Tk. ${d.due}</span>`;
-
-          contentEl.innerHTML = `
-            <div class="row"><span class="label">Invoice No</span><span class="value">${d.invoiceNo}</span></div>
-            <div class="row"><span class="label">Order Date & Time</span><span class="value">${d.orderDateTime}</span></div>
-            <div class="row"><span class="label">Delivery Time</span><span class="value">${d.deliveryTime}</span></div>
-            <div class="row"><span class="label">Customer</span><span class="value">${d.customerName}</span></div>
-            <div class="row"><span class="label">Phone</span><span class="value">${d.customerPhone}</span></div>
-            <div class="row"><span class="label">Frame / Glass</span><span class="value">${d.frame} / ${d.glass}</span></div>
-            <div class="row"><span class="label">Order Status</span><span class="value"><span class="status-badge ${stClass}">${st}</span></span></div>
-            <div class="row"><span class="label">Total Bill</span><span class="value">Tk. ${d.total}</span></div>
-            <div class="row"><span class="label">Paid Amount</span><span class="value paid-text">Tk. ${d.paid}</span></div>
-            <div class="row"><span class="label">Balance Due</span><span class="value">${dueHtml}</span></div>
-          `;
-        })
-        .catch(() => {
-          contentEl.innerHTML = '<div class="error">Unable to connect to verification server. Please try again.</div>';
-        });
+    function fmtMoney(n) {
+      const val = Math.round(Number(n) || 0);
+      return "Tk. " + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function showState(id) {
+      ["loadingState", "errorState", "emptyState", "invoiceContent"].forEach(elId => {
+        document.getElementById(elId).classList.toggle("hidden", elId !== id);
+      });
+    }
+
+    function showError(title, message) {
+      document.getElementById("verifiedBadge").classList.add("hidden");
+      document.getElementById("errorTitle").textContent = title;
+      document.getElementById("errorDesc").textContent = message;
+      showState("errorState");
+    }
+
+    function renderInvoice(d) {
+      document.getElementById("verifiedBadge").classList.remove("hidden");
+      document.getElementById("invNo").textContent = d.invoiceNo || "-";
+      document.getElementById("invDate").textContent = "Issued: " + (d.orderDateTime || "-");
+
+      const status = String(d.status || "PROCESSING").toUpperCase();
+      const pill = document.getElementById("statusPill");
+      pill.textContent = status;
+      pill.className = "status-pill status-" + (["DELIVERED", "READY", "PROCESSING"].includes(status) ? status : "PROCESSING");
+
+      document.getElementById("custName").textContent = d.customerName || "-";
+      document.getElementById("custPhone").textContent = d.customerPhone || "-";
+      document.getElementById("custAddress").textContent = d.customerAddress || "-";
+      document.getElementById("payMethod").textContent = d.paymentMethod || "Cash";
+      document.getElementById("createdBy").textContent = d.createdBy || "-";
+
+      if (status === "DELIVERED") {
+        document.getElementById("expectedDeliveryRow").classList.add("hidden");
+        document.getElementById("deliveredOnRow").classList.remove("hidden");
+        document.getElementById("deliveredByRow").classList.remove("hidden");
+        document.getElementById("deliveredAt").textContent = d.deliveredAt || d.deliveryTime || "-";
+        document.getElementById("deliveredBy").textContent = d.deliveredBy || d.createdBy || "-";
+      } else {
+        document.getElementById("expectedDeliveryRow").classList.remove("hidden");
+        document.getElementById("deliveredOnRow").classList.add("hidden");
+        document.getElementById("deliveredByRow").classList.add("hidden");
+        document.getElementById("deliveryTime").textContent = d.deliveryTime || "Instant";
+      }
+
+      // Render itemized rows
+      const itemsBody = document.getElementById("itemsBody");
+      const items = Array.isArray(d.items) && d.items.length ? d.items : [];
+      itemsBody.innerHTML = items.map(it => {
+        const showBreakdown = it.frameDetails && it.glassDetails && (it.framePrice > 0 || it.glassPrice > 0);
+        const breakdownHtml = showBreakdown
+          ? `<div class="item-breakdown">Frame: ${escapeHtml(it.frameDetails)} (${fmtMoney(it.framePrice)}) &bull; Lens: ${escapeHtml(it.glassDetails)} (${fmtMoney(it.glassPrice)})</div>`
+          : "";
+        return `
+          <tr>
+            <td>
+              <div class="item-name">${escapeHtml(it.displayTitle || "Optical Eyewear")}</div>
+              ${breakdownHtml}
+            </td>
+            <td class="text-center">${Number(it.quantity) || 1}</td>
+            <td class="text-right">${fmtMoney(it.unitPrice)}</td>
+            <td class="text-right"><strong>${fmtMoney(it.lineTotal)}</strong></td>
+          </tr>
+        `;
+      }).join("");
+
+      // Render Prescription (Rx) if present
+      if (d.hasRx && d.rx) {
+        const ipd = String(d.rx.ipd || "").trim();
+        document.getElementById("rxHeading").textContent =
+          "Optical Prescription (Rx)" + (ipd && ipd !== "-" ? ` | IPD: ${ipd} mm` : "");
+
+        document.getElementById("rxBody").innerHTML = `
+          <tr>
+            <td><strong>Right (OD)</strong></td>
+            <td class="text-center">${escapeHtml(d.rx.right.sph)}</td>
+            <td class="text-center">${escapeHtml(d.rx.right.cyl)}</td>
+            <td class="text-center">${escapeHtml(d.rx.right.axis)}</td>
+            <td class="text-center">${escapeHtml(d.rx.right.add)}</td>
+          </tr>
+          <tr>
+            <td><strong>Left (OS)</strong></td>
+            <td class="text-center">${escapeHtml(d.rx.left.sph)}</td>
+            <td class="text-center">${escapeHtml(d.rx.left.cyl)}</td>
+            <td class="text-center">${escapeHtml(d.rx.left.axis)}</td>
+            <td class="text-center">${escapeHtml(d.rx.left.add)}</td>
+          </tr>
+        `;
+        document.getElementById("rxSection").classList.remove("hidden");
+      } else {
+        document.getElementById("rxSection").classList.add("hidden");
+      }
+
+      // Totals
+      document.getElementById("subTotal").textContent = fmtMoney(d.subTotal);
+      if (Number(d.discount) > 0) {
+        document.getElementById("discountRow").classList.remove("hidden");
+        document.getElementById("discount").textContent = "- " + fmtMoney(d.discount);
+      } else {
+        document.getElementById("discountRow").classList.add("hidden");
+      }
+      document.getElementById("netTotal").textContent = fmtMoney(d.total);
+      document.getElementById("paidAmount").textContent = fmtMoney(d.paid);
+      document.getElementById("amountWords").textContent = d.amountInWords || "-";
+
+      const dueBanner = document.getElementById("dueBanner");
+      if (d.isPaid) {
+        dueBanner.className = "due-banner paid";
+        document.getElementById("dueLabel").textContent = "PAYMENT STATUS";
+        document.getElementById("dueValue").textContent = "FULL PAID";
+      } else {
+        dueBanner.className = "due-banner unpaid";
+        document.getElementById("dueLabel").textContent = "BALANCE DUE";
+        document.getElementById("dueValue").textContent = fmtMoney(d.due);
+      }
+
+      if (d.pdfUrl) {
+        document.getElementById("pdfLink").href = d.pdfUrl;
+        document.getElementById("pdfActionWrap").classList.remove("hidden");
+      } else {
+        document.getElementById("pdfActionWrap").classList.add("hidden");
+      }
+
+      if (d.verifiedAt) {
+        document.getElementById("portalFooter").textContent =
+          `Verified live on ${d.verifiedAt} • Chashma Bazar Official Portal`;
+      }
+
+      showState("invoiceContent");
+    }
+
+    async function initVerification() {
+      const params = new URLSearchParams(window.location.search);
+      const inv = (params.get("inv") || "").trim();
+      const token = (params.get("t") || "").trim();
+
+      if (!inv) {
+        showState("emptyState");
+        return;
+      }
+
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes("https://script.google.com/macros/s/AKfycbwGOTnA9J-ycXHUYkzxXpmy2QQeoBndPb6rkEEjsnGaqBT1fChPk2CpdmtSvWVhLTqo/exec")) {
+        showError("Portal Not Configured", "Set GAS_WEB_APP_URL in index.html to your deployed Apps Script Web App URL.");
+        return;
+      }
+
+      try {
+        const apiUrl = `${GAS_WEB_APP_URL}?inv=${encodeURIComponent(inv)}&t=${encodeURIComponent(token)}&mode=json`;
+        const response = await fetch(apiUrl, { method: "GET", redirect: "follow" });
+
+        if (!response.ok) {
+          throw new Error("Server returned status " + response.status);
+        }
+
+        const result = await response.json();
+        if (!result.success || !result.data) {
+          showError("Unauthorized or Invalid Invoice", result.message || "The invoice number or security token is invalid.");
+          return;
+        }
+
+        renderInvoice(result.data);
+      } catch (err) {
+        showError("Connection Error", "Unable to reach the verification server right now. Please try again in a moment.");
+      }
+    }
+
+    initVerification();
   </script>
 </body>
 </html>
