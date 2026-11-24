@@ -6,7 +6,6 @@
   <meta name="referrer" content="no-referrer" />
   <title>Chashma Bazar — Official Invoice Verification</title>
 
-  <!-- সুপারফাস্ট লোডিংয়ের জন্য Google Apps Script ও Redirect ডোমেইনে Preconnect -->
   <link rel="dns-prefetch" href="https://script.google.com" />
   <link rel="dns-prefetch" href="https://script.googleusercontent.com" />
   <link rel="preconnect" href="https://script.google.com" crossorigin />
@@ -59,7 +58,6 @@
       overflow: hidden;
     }
 
-    /* Top Brand Bar */
     .brand-header {
       background: var(--navy);
       color: var(--white);
@@ -102,7 +100,6 @@
       padding: 20px 22px;
     }
 
-    /* States (Loading, Error, Empty) */
     .state-box {
       text-align: center;
       padding: 44px 20px;
@@ -174,7 +171,6 @@
       background: var(--navy-light);
     }
 
-    /* Invoice Top Summary */
     .inv-banner {
       display: flex;
       justify-content: space-between;
@@ -221,7 +217,6 @@
     .status-READY { background: var(--blue-bg); color: var(--blue-text); }
     .status-PROCESSING { background: var(--amber-bg); color: var(--amber-text); }
 
-    /* Info Grid */
     .info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -285,7 +280,6 @@
       font-weight: 700;
     }
 
-    /* Tables */
     .section-title {
       font-size: 12px;
       font-weight: 700;
@@ -343,7 +337,6 @@
       margin-top: 2px;
     }
 
-    /* Totals */
     .summary-box {
       margin-top: 16px;
       border: 1px solid var(--border);
@@ -402,7 +395,6 @@
       color: var(--text);
     }
 
-    /* Actions & Footer */
     .actions {
       margin-top: 18px;
       display: flex;
@@ -615,25 +607,14 @@
       return "Tk. " + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
-    // XSS সুরক্ষা: সব ইনপুট নিরাপদভাবে এস্কেপ করা
     function escapeHtml(str) {
-      return String(str || "").replace(/[&<>"']/g, function (ch) {
-        switch (ch) {
-          case "&": return "&";
-          case "<": return "<";
-          case ">": return ">";
-          case '"': return """;
-          case "'": return "'";
-          default: return ch;
-        }
-      });
+      const map = { "&": "&", "<": "<", ">": ">", '"': """, "'": "'" };
+      return String(str || "").replace(/[&<>"']/g, function (ch) { return map[ch]; });
     }
 
-    // শুধু নিরাপদ HTTPS লিংক অনুমোদন করা
     function isSafeHttpsUrl(url) {
       try {
-        const parsed = new URL(String(url || ""));
-        return parsed.protocol === "https:";
+        return new URL(String(url || "")).protocol === "https:";
       } catch (e) {
         return false;
       }
@@ -682,7 +663,6 @@
         document.getElementById("deliveryTime").textContent = d.deliveryTime || "Instant";
       }
 
-      // আইটেম তালিকা রেন্ডার
       const itemsBody = document.getElementById("itemsBody");
       const items = Array.isArray(d.items) && d.items.length ? d.items : [];
       itemsBody.innerHTML = items.map(function (it) {
@@ -700,8 +680,7 @@
         );
       }).join("");
 
-      // প্রেসক্রিপশন (Rx) রেন্ডার
-      const rx = d.rx || { right: {}, left: {}, ipd: "-" };
+      const rx = d.rx || {};
       const right = rx.right || {};
       const left = rx.left || {};
       const ipd = String(rx.ipd || "").trim();
@@ -725,7 +704,6 @@
           '<td class="text-center">' + escapeHtml(left.add || "-") + '</td>' +
         '</tr>';
 
-      // আর্থিক হিসাব
       document.getElementById("subTotal").textContent = fmtMoney(d.subTotal);
       if (Number(d.discount) > 0) {
         document.getElementById("discountRow").classList.remove("hidden");
@@ -763,6 +741,63 @@
       showState("invoiceContent");
     }
 
+    // Primary transport: clean, preflight-free fetch()
+    async function fetchViaStandardApi(baseQueryUrl) {
+      const controller = new AbortController();
+      const timer = setTimeout(function () { controller.abort(); }, 8000);
+      try {
+        const res = await fetch(baseQueryUrl, { method: "GET", redirect: "follow", signal: controller.signal });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+      } catch (e) {
+        clearTimeout(timer);
+        throw e;
+      }
+    }
+
+    // Fallback transport: JSONP (immune to CORS & mobile privacy-shield redirect blocks)
+    function fetchViaJsonp(baseQueryUrl) {
+      return new Promise(function (resolve, reject) {
+        const cbName = "cbVerify_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+        const script = document.createElement("script");
+        let settled = false;
+
+        function cleanup() {
+          clearTimeout(timer);
+          try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        const timer = setTimeout(function () {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            reject(new Error("Request timed out"));
+          }
+        }, 10000);
+
+        window[cbName] = function (payload) {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            resolve(payload);
+          }
+        };
+
+        script.onerror = function () {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            reject(new Error("Network blocked"));
+          }
+        };
+
+        script.src = baseQueryUrl + "&callback=" + encodeURIComponent(cbName);
+        document.head.appendChild(script);
+      });
+    }
+
     async function initVerification(forceRefresh) {
       const params = new URLSearchParams(window.location.search);
       const inv = (params.get("inv") || "").trim();
@@ -773,7 +808,6 @@
         return;
       }
 
-      // সেশন ক্যাশ চেক: একই ইনভয়েস আবার খুললে ০ সেকেন্ডে লোড হবে এবং ব্যাকগ্রাউন্ডে লাইভ আপডেট হবে
       const cacheKey = "cb_inv_" + inv.toUpperCase() + "_" + token;
       let hasCachedView = false;
       if (!forceRefresh) {
@@ -790,36 +824,26 @@
         showState("loadingState");
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(function () { controller.abort(); }, 12000);
+      const baseQueryUrl =
+        GAS_WEB_APP_URL +
+        "?inv=" + encodeURIComponent(inv) +
+        "&t=" + encodeURIComponent(token) +
+        "&mode=json";
 
       try {
-        const apiUrl =
-          GAS_WEB_APP_URL +
-          "?inv=" + encodeURIComponent(inv) +
-          "&t=" + encodeURIComponent(token) +
-          "&mode=json";
-
-        const response = await fetch(apiUrl, {
-          method: "GET",
-          redirect: "follow",
-          credentials: "omit",
-          referrerPolicy: "no-referrer",
-          cache: "no-store",
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new Error("Server returned HTTP " + response.status);
+        let result;
+        try {
+          result = await fetchViaStandardApi(baseQueryUrl);
+        } catch (fetchErr) {
+          // Automatic failover to JSONP if browser shield/CORS blocks fetch()
+          result = await fetchViaJsonp(baseQueryUrl);
         }
 
-        const result = await response.json();
-        if (!result.success || !result.data) {
+        if (!result || !result.success || !result.data) {
           try { sessionStorage.removeItem(cacheKey); } catch (e) {}
           showError(
             "Unauthorized or Invalid Invoice",
-            result.message || "The invoice number or security token is invalid.",
+            (result && result.message) ? result.message : "The invoice number or security token is invalid.",
             false
           );
           return;
@@ -828,12 +852,12 @@
         try { sessionStorage.setItem(cacheKey, JSON.stringify(result.data)); } catch (e) {}
         renderInvoice(result.data);
       } catch (err) {
-        clearTimeout(timeoutId);
         if (!hasCachedView) {
-          const msg = err.name === "AbortError"
-            ? "Connection timed out. Please check your internet and tap Try Again."
-            : "Unable to reach the verification server right now. Please try again.";
-          showError("Connection Error", msg, true);
+          showError(
+            "Connection Error",
+            "Unable to reach the verification server right now. Please check your internet and tap Try Again.",
+            true
+          );
         }
       }
     }
