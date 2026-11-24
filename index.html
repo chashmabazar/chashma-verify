@@ -58,7 +58,6 @@
       overflow: hidden;
     }
 
-    /* সেন্টার অ্যালাইন হেডার */
     .brand-header {
       background: var(--navy);
       color: var(--white);
@@ -397,12 +396,29 @@
       color: var(--text);
     }
 
-    .portal-footer {
+    .portal-footer-wrap {
       text-align: center;
       font-size: 11.5px;
       color: var(--muted);
       margin-top: 16px;
-      padding-bottom: 12px;
+      padding-bottom: 14px;
+    }
+
+    /* হালকা ধূসর ছোট ফন্টে প্রফেশনাল ডেভেলপার ক্রেডিট */
+    .dev-credit {
+      margin-top: 5px;
+      font-size: 10.5px;
+      color: #94A3B8;
+    }
+
+    .dev-credit a {
+      color: #94A3B8;
+      text-decoration: none;
+    }
+
+    .dev-credit a:hover {
+      color: var(--navy);
+      text-decoration: underline;
     }
 
     .hidden {
@@ -563,8 +579,11 @@
       </div>
     </div>
 
-    <div id="portalFooter" class="portal-footer">
-      Chashma Bazar • Official Invoice Verification Portal
+    <div class="portal-footer-wrap">
+      <div id="portalFooter">Chashma Bazar • Official Invoice Verification Portal</div>
+      <div class="dev-credit">
+        System Developed by Md. Tanbir Hasan (<a href="mailto:tanbir.hasan@tvnlbd.com">tanbir.hasan@tvnlbd.com</a>)
+      </div>
     </div>
   </div>
 
