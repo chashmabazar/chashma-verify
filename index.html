@@ -428,7 +428,7 @@
           <div class="brand-sub">Official Invoice Verification Portal</div>
         </div>
         <div id="verifiedBadge" class="verified-chip hidden">
-          &#10003; Authentic Record
+          ✓ Authentic Record
         </div>
       </div>
 
@@ -436,7 +436,7 @@
       <div id="loadingState" class="state-box">
         <div class="spinner"></div>
         <div class="state-title">Verifying Invoice...</div>
-        <div class="state-desc">Checking HMAC security token and live order status with Chashma Bazar records.</div>
+        <div class="state-desc">Checking live order status and authenticity with Chashma Bazar official records.</div>
       </div>
 
       <!-- Error / Unauthorized State -->
@@ -451,7 +451,7 @@
         <div class="state-icon info">i</div>
         <div class="state-title">Scan Your Invoice QR Code</div>
         <div class="state-desc">
-          To verify an order, scan the secure QR code printed on your official Chashma Bazar invoice.
+          To verify an order, scan the QR code printed on your official Chashma Bazar invoice.
         </div>
       </div>
 
@@ -459,7 +459,7 @@
       <div id="invoiceContent" class="content hidden">
         <div class="inv-banner">
           <div>
-            <div class="inv-label">Official Invoice</div>
+            <div class="inv-label">Invoice No.</div>
             <div id="invNo" class="inv-no">-</div>
             <div id="invDate" class="inv-date">Issued: -</div>
           </div>
@@ -484,7 +484,7 @@
           </div>
 
           <div class="info-card">
-            <div class="info-card-title">Order &amp; Delivery Audit</div>
+            <div class="info-card-title">Order & Delivery Audit</div>
             <div class="info-row">
               <span class="info-key">Payment Mode</span>
               <span id="payMethod" class="info-val">-</span>
@@ -523,7 +523,7 @@
           </table>
         </div>
 
-        <div id="rxSection" class="hidden">
+        <div id="rxSection">
           <div id="rxHeading" class="section-title">Optical Prescription (Rx)</div>
           <div class="table-wrap">
             <table>
@@ -576,12 +576,11 @@
     </div>
 
     <div id="portalFooter" class="portal-footer">
-      Chashma Bazar Enterprise Optical ERP &bull; HMAC-SHA256 Secured Verification
+      Chashma Bazar • Official Invoice Verification Portal
     </div>
   </div>
 
   <script>
-    // Replace with your deployed Google Apps Script Web App URL (ending in /exec)
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwGOTnA9J-ycXHUYkzxXpmy2QQeoBndPb6rkEEjsnGaqBT1fChPk2CpdmtSvWVhLTqo/exec";
 
     function fmtMoney(n) {
@@ -591,11 +590,11 @@
 
     function escapeHtml(str) {
       return String(str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replace(/&/g, "&")
+        .replace(/</g, "<")
+        .replace(/>/g, ">")
+        .replace(/"/g, """)
+        .replace(/'/g, "'");
     }
 
     function showState(id) {
@@ -646,7 +645,7 @@
       itemsBody.innerHTML = items.map(it => {
         const showBreakdown = it.frameDetails && it.glassDetails && (it.framePrice > 0 || it.glassPrice > 0);
         const breakdownHtml = showBreakdown
-          ? `<div class="item-breakdown">Frame: ${escapeHtml(it.frameDetails)} (${fmtMoney(it.framePrice)}) &bull; Lens: ${escapeHtml(it.glassDetails)} (${fmtMoney(it.glassPrice)})</div>`
+          ? `<div class="item-breakdown">Frame: ${escapeHtml(it.frameDetails)} (${fmtMoney(it.framePrice)}) • Lens: ${escapeHtml(it.glassDetails)} (${fmtMoney(it.glassPrice)})</div>`
           : "";
         return `
           <tr>
@@ -661,32 +660,28 @@
         `;
       }).join("");
 
-      // Render Prescription (Rx) if present
-      if (d.hasRx && d.rx) {
-        const ipd = String(d.rx.ipd || "").trim();
-        document.getElementById("rxHeading").textContent =
-          "Optical Prescription (Rx)" + (ipd && ipd !== "-" ? ` | IPD: ${ipd} mm` : "");
+      // Render Prescription (Rx) always with '-' fallback
+      const rx = d.rx || { right: {}, left: {}, ipd: "-" };
+      const ipd = String(rx.ipd || "").trim();
+      document.getElementById("rxHeading").textContent =
+        "Optical Prescription (Rx)" + (ipd && ipd !== "-" ? ` | IPD: ${ipd} mm` : " | IPD: -");
 
-        document.getElementById("rxBody").innerHTML = `
-          <tr>
-            <td><strong>Right (OD)</strong></td>
-            <td class="text-center">${escapeHtml(d.rx.right.sph)}</td>
-            <td class="text-center">${escapeHtml(d.rx.right.cyl)}</td>
-            <td class="text-center">${escapeHtml(d.rx.right.axis)}</td>
-            <td class="text-center">${escapeHtml(d.rx.right.add)}</td>
-          </tr>
-          <tr>
-            <td><strong>Left (OS)</strong></td>
-            <td class="text-center">${escapeHtml(d.rx.left.sph)}</td>
-            <td class="text-center">${escapeHtml(d.rx.left.cyl)}</td>
-            <td class="text-center">${escapeHtml(d.rx.left.axis)}</td>
-            <td class="text-center">${escapeHtml(d.rx.left.add)}</td>
-          </tr>
-        `;
-        document.getElementById("rxSection").classList.remove("hidden");
-      } else {
-        document.getElementById("rxSection").classList.add("hidden");
-      }
+      document.getElementById("rxBody").innerHTML = `
+        <tr>
+          <td><strong>Right (OD)</strong></td>
+          <td class="text-center">${escapeHtml(rx.right?.sph || "-")}</td>
+          <td class="text-center">${escapeHtml(rx.right?.cyl || "-")}</td>
+          <td class="text-center">${escapeHtml(rx.right?.axis || "-")}</td>
+          <td class="text-center">${escapeHtml(rx.right?.add || "-")}</td>
+        </tr>
+        <tr>
+          <td><strong>Left (OS)</strong></td>
+          <td class="text-center">${escapeHtml(rx.left?.sph || "-")}</td>
+          <td class="text-center">${escapeHtml(rx.left?.cyl || "-")}</td>
+          <td class="text-center">${escapeHtml(rx.left?.axis || "-")}</td>
+          <td class="text-center">${escapeHtml(rx.left?.add || "-")}</td>
+        </tr>
+      `;
 
       // Totals
       document.getElementById("subTotal").textContent = fmtMoney(d.subTotal);
@@ -736,14 +731,13 @@
         return;
       }
 
-      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes("https://script.google.com/macros/s/AKfycbwGOTnA9J-ycXHUYkzxXpmy2QQeoBndPb6rkEEjsnGaqBT1fChPk2CpdmtSvWVhLTqo/exec")) {
-        showError("Portal Not Configured", "Set GAS_WEB_APP_URL in index.html to your deployed Apps Script Web App URL.");
-        return;
-      }
-
       try {
         const apiUrl = `${GAS_WEB_APP_URL}?inv=${encodeURIComponent(inv)}&t=${encodeURIComponent(token)}&mode=json`;
-        const response = await fetch(apiUrl, { method: "GET", redirect: "follow" });
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          redirect: "follow",
+          credentials: "omit"
+        });
 
         if (!response.ok) {
           throw new Error("Server returned status " + response.status);
