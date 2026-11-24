@@ -30,7 +30,7 @@
       --red-text: #991B1B;
     }
 
-    * {
+    html, body, div, span, table, thead, tbody, tr, th, td, a, button {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -607,9 +607,11 @@
       return "Tk. " + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
+    // নিরাপদ এবং কপি-পেস্ট প্রুফ XSS এস্কেপ ফাংশন (কোনো HTML entity ছাড়াই)
     function escapeHtml(str) {
-      const map = { "&": "&", "<": "<", ">": ">", '"': """, "'": "'" };
-      return String(str || "").replace(/[&<>"']/g, function (ch) { return map[ch]; });
+      const div = document.createElement("div");
+      div.textContent = String(str || "");
+      return div.innerHTML;
     }
 
     function isSafeHttpsUrl(url) {
@@ -741,7 +743,6 @@
       showState("invoiceContent");
     }
 
-    // Primary transport: clean, preflight-free fetch()
     async function fetchViaStandardApi(baseQueryUrl) {
       const controller = new AbortController();
       const timer = setTimeout(function () { controller.abort(); }, 8000);
@@ -756,7 +757,6 @@
       }
     }
 
-    // Fallback transport: JSONP (immune to CORS & mobile privacy-shield redirect blocks)
     function fetchViaJsonp(baseQueryUrl) {
       return new Promise(function (resolve, reject) {
         const cbName = "cbVerify_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
@@ -835,7 +835,6 @@
         try {
           result = await fetchViaStandardApi(baseQueryUrl);
         } catch (fetchErr) {
-          // Automatic failover to JSONP if browser shield/CORS blocks fetch()
           result = await fetchViaJsonp(baseQueryUrl);
         }
 
