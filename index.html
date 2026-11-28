@@ -166,6 +166,8 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
     }
 
     .retry-btn:hover {
@@ -401,10 +403,9 @@
       font-size: 11.5px;
       color: var(--muted);
       margin-top: 16px;
-      padding-bottom: 14px;
+      padding-bottom: 18px;
     }
 
-    /* হালকা ধূসর ছোট ফন্টে প্রফেশনাল ডেভেলপার ক্রেডিট */
     .dev-credit {
       margin-top: 5px;
       font-size: 10.5px;
@@ -419,6 +420,34 @@
     .dev-credit a:hover {
       color: var(--navy);
       text-decoration: underline;
+    }
+
+    /* হিউম্যান-ফ্রেন্ডলি লাইভ ভেরিফিকেশন কাউন্টার ব্যাজ */
+    .verify-counter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      font-size: 11.5px;
+      color: var(--muted);
+      box-shadow: 0 1px 4px rgba(15, 31, 61, 0.04);
+    }
+
+    .verify-counter-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10B981;
+      display: inline-block;
+    }
+
+    .verify-counter-badge strong {
+      color: var(--navy);
+      font-weight: 800;
     }
 
     .hidden {
@@ -442,8 +471,8 @@
       <!-- Loading State -->
       <div id="loadingState" class="state-box">
         <div class="spinner"></div>
-        <div class="state-title">Verifying Invoice...</div>
-        <div class="state-desc">Checking live order status and authenticity with Chashma Bazar official records.</div>
+        <div id="loadingTitle" class="state-title">Verifying Invoice...</div>
+        <div id="loadingDesc" class="state-desc">Checking live order status and authenticity with Chashma Bazar official records.</div>
       </div>
 
       <!-- Error / Unauthorized State -->
@@ -584,6 +613,11 @@
       <div class="dev-credit">
         System Developed by Md. Tanbir Hasan (<a href="mailto:tanbir.hasan@tvnlbd.com">tanbir.hasan@tvnlbd.com</a>)
       </div>
+      <!-- লাইভ QR ভেরিফিকেশন কাউন্টার -->
+      <div id="verifyCounterBox" class="verify-counter-badge hidden">
+        <span class="verify-counter-dot"></span>
+        <span>Total Verified Invoices: <strong id="verifyCountVal">0</strong></span>
+      </div>
     </div>
   </div>
 
@@ -595,10 +629,26 @@
       return "Tk. " + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
+    function fmtCount(n) {
+      return (Math.max(0, Number(n) || 0)).toLocaleString("en-US");
+    }
+
+    function updateVerifyCounter(count) {
+      const num = Number(count);
+      if (!isNaN(num) && num >= 0) {
+        document.getElementById("verifyCountVal").textContent = fmtCount(num);
+        document.getElementById("verifyCounterBox").classList.remove("hidden");
+      }
+    }
+
     function escapeHtml(str) {
       const div = document.createElement("div");
       div.textContent = String(str || "");
       return div.innerHTML;
+    }
+
+    function isValidDriveUrl(url) {
+      return /^https:\/\/(drive|docs)\.google\.com\//i.test(String(url || "").trim());
     }
 
     function showState(id) {
@@ -712,6 +762,10 @@
           "Verified live on " + d.verifiedAt + " • Chashma Bazar Official Portal";
       }
 
+      if (d.totalVerifications !== undefined) {
+        updateVerifyCounter(d.totalVerifications);
+      }
+
       showState("invoiceContent");
     }
 
@@ -770,13 +824,65 @@
       });
     }
 
+    async function fetchJsonSafe(url) {
+      try {
+        return await fetchViaStandardApi(url);
+      } catch (e) {
+        return await fetchViaJsonp(url);
+      }
+    }
+
+    async function loadPortalStats() {
+      try {
+        const res = await fetchJsonSafe(GAS_WEB_APP_URL + "?mode=stats");
+        if (res && res.success && res.data && res.data.totalVerifications !== undefined) {
+          updateVerifyCounter(res.data.totalVerifications);
+        }
+      } catch (e) {}
+    }
+
     async function initVerification(forceRefresh) {
       const params = new URLSearchParams(window.location.search);
       const inv = (params.get("inv") || "").trim();
       const token = (params.get("t") || "").trim();
+      const mode = (params.get("mode") || "").trim().toLowerCase();
 
       if (!inv) {
         showState("emptyState");
+        loadPortalStats();
+        return;
+      }
+
+      // সরাসরি PDF অটো-লোড মোড (হোয়াটসঅ্যাপ লিংকে ক্লিক করলেই কোনো বাটন ছাড়াই লেটেস্ট PDF ওপেন হবে)
+      if (mode === "pdf") {
+        document.getElementById("loadingTitle").textContent = "Opening PDF Invoice...";
+        document.getElementById("loadingDesc").textContent = "Fetching the latest updated PDF for " + inv + "...";
+        showState("loadingState");
+
+        const pdfQueryUrl =
+          GAS_WEB_APP_URL +
+          "?inv=" + encodeURIComponent(inv) +
+          "&t=" + encodeURIComponent(token) +
+          "&mode=json&count=0";
+
+        try {
+          const result = await fetchJsonSafe(pdfQueryUrl);
+          if (result && result.success && result.data && isValidDriveUrl(result.data.pdfUrl)) {
+            window.location.replace(result.data.pdfUrl);
+            return;
+          }
+          showError(
+            "PDF Not Available",
+            (result && result.message) ? result.message : "Could not locate the latest PDF invoice.",
+            true
+          );
+        } catch (err) {
+          showError(
+            "Connection Error",
+            "Unable to load the PDF invoice right now. Please check your internet and tap Try Again.",
+            true
+          );
+        }
         return;
       }
 
@@ -803,12 +909,7 @@
         "&mode=json";
 
       try {
-        let result;
-        try {
-          result = await fetchViaStandardApi(baseQueryUrl);
-        } catch (fetchErr) {
-          result = await fetchViaJsonp(baseQueryUrl);
-        }
+        const result = await fetchJsonSafe(baseQueryUrl);
 
         if (!result || !result.success || !result.data) {
           try { sessionStorage.removeItem(cacheKey); } catch (e) {}
